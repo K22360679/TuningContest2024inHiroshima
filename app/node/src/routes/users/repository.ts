@@ -301,11 +301,14 @@ export const getUserForFilter = async (
     [user.user_icon_id]
   );
   const [departmentNameRow] = await pool.query<RowDataPacket[]>(
-    `SELECT department_name FROM department WHERE department_id = (SELECT department_id FROM department_role_member WHERE user_id = ? AND belong = true)`,
+    // `SELECT department_name FROM department WHERE department_id = (SELECT department_id FROM department_role_member WHERE user_id = ? AND belong = true)`,
+    `SELECT department.department_name FROM department, department_role_member \
+    WHERE department.department_id = department_role_member.department_id AND department_role_member.user_id = ? AND department_role_member.belong = true)`,
     [user.user_id]
   );
   const [skillNameRows] = await pool.query<RowDataPacket[]>(
-    `SELECT skill_name FROM skill WHERE skill_id IN (SELECT skill_id FROM skill_member WHERE user_id = ?)`,
+    // `SELECT skill_name FROM skill WHERE skill_id IN (SELECT skill_id FROM skill_member WHERE user_id = ?)`,
+    `SELECT skill.skill_name FROM skill, skill_member WHERE skill.skill_id = skill_member.skill_id AND skill_member.user_id = ?)`,
     [user.user_id]
   );
 

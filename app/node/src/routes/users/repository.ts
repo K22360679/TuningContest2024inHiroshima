@@ -26,13 +26,6 @@ export const getUsers = async (
   limit: number,
   offset: number
 ): Promise<User[]> => {
-  /*
-    [{user.id,user.name,user.office_id,user.user.icon_id}]
-    から
-    [{user.id,user.name,user.office_id,user.user.icon_id, office.name, icon.file}]を返したい!!
-    inner joinとwhereで一発で出せるのでは！！！！！
-  */
-  // const query = `SELECT user_id, user_name, office_id, user_icon_id FROM user ORDER BY entry_date ASC, kana ASC LIMIT ? OFFSET ?`;
   const query =
     "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
@@ -41,56 +34,31 @@ export const getUsers = async (
 
   const [userRows] = await pool.query<RowDataPacket[]>(query, [limit, offset]);
 
-  /*
-  for文がボトルネック!!!
-  for (const userRow of userRows) {
-    const [officeRows] = await pool.query<RowDataPacket[]>(
-      `SELECT office_name FROM office WHERE office_id = ?`,
-      [userRow.office_id]
-    );
-
-    const [fileRows] = await pool.query<RowDataPacket[]>(
-      `SELECT file_name FROM file WHERE file_id = ?`,
-      [userRow.user_icon_id]
-    );
-
-    userRow.office_name = officeRows[0].office_name;
-    userRow.file_name = fileRows[0].file_name;
-    rows.push(userRow);
-  }
-  */
-
   return convertToUsers(userRows);
 };
 
 export const getUserByUserId = async (
   userId: string
 ): Promise<User | undefined> => {
-  const [user] = await pool.query<RowDataPacket[]>(
-    "SELECT user_id, user_name, office_id, user_icon_id FROM user WHERE user_id = ?",
+  const [users] = await pool.query<RowDataPacket[]>(
+    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    WHERE user_id = ?",
     [userId]
   );
-  if (user.length === 0) {
+  if (users.length === 0) {
     return;
   }
-
-  const [office] = await pool.query<RowDataPacket[]>(
-    `SELECT office_name FROM office WHERE office_id = ?`,
-    [user[0].office_id]
-  );
-  const [file] = await pool.query<RowDataPacket[]>(
-    `SELECT file_name FROM file WHERE file_id = ?`,
-    [user[0].user_icon_id]
-  );
+  const user = users[0];
 
   return {
-    userId: user[0].user_id,
-    userName: user[0].user_name,
+    userId: user.user_id,
+    userName: user.user_name,
     userIcon: {
-      fileId: user[0].user_icon_id,
-      fileName: file[0].file_name,
+      fileId: user.user_icon_id,
+      fileName: user.file_name,
     },
-    officeName: office[0].office_name,
+    officeName: user.office_name,
   };
 };
 

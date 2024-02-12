@@ -27,15 +27,8 @@ export const getUsers = async (
   limit: number,
   offset: number
 ): Promise<User[]> => {
-  /*
-    [{user.id,user.name,user.office_id,user.user.icon_id}]
-    から
-    [{user.id,user.name,user.office_id,user.user.icon_id, office.name, icon.file}]を返したい!!
-    inner joinとwhereで一発で出せるのでは！！！！！
-  */
-  // const query = `SELECT user_id, user_name, office_id, user_icon_id FROM user ORDER BY entry_date ASC, kana ASC LIMIT ? OFFSET ?`;
   const query =
-    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     ORDER BY entry_date ASC, kana ASC LIMIT ? OFFSET ? \
     ";
@@ -50,7 +43,7 @@ export const getUserByUserId = async (
   userId: string
 ): Promise<User | undefined> => {
   const [users] = await pool.query<RowDataPacket[]>(
-    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     WHERE user_id = ?",
     [userId]
@@ -58,17 +51,6 @@ export const getUserByUserId = async (
   if (users.length === 0) {
     return;
   }
-
-  /*
-  const [office] = await pool.query<RowDataPacket[]>(
-    `SELECT office_name FROM office WHERE office_id = ?`,
-    [user[0].office_id]
-  );
-  const [file] = await pool.query<RowDataPacket[]>(
-    `SELECT file_name FROM file WHERE file_id = ?`,
-    [user[0].user_icon_id]
-  );
-  */
 
   const user = users[0];
 
@@ -89,7 +71,7 @@ export const getUsersByUserIds = async (
 ): Promise<SearchedUser[]> => {
   let users: SearchedUser[] = [];
   let query: string =
-    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     WHERE ";
   userIds.forEach((id) => {
@@ -105,19 +87,9 @@ export const getUsersByUserIds = async (
 export const getUsersByUserName = async (
   userName: string
 ): Promise<SearchedUser[]> => {
-  /*
-  const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM user WHERE user_name LIKE ?`,
-    [`%${userName}%`]
-  );
-  const userIds: string[] = rows.map((row) => row.user_id);
-  
-
-  return getUsersByUserIds(userIds);
-  */
   let users: SearchedUser[] = [];
   const [rows] = await pool.query<RowDataPacket[]>(
-    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     WHERE user_name LIKE ?",
     [`%${userName}%`]
@@ -130,7 +102,7 @@ export const getUsersByUserName = async (
 export const getUsersByKana = async (kana: string): Promise<SearchedUser[]> => {
   let users: SearchedUser[] = [];
   const [rows] = await pool.query<RowDataPacket[]>(
-    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     WHERE user.kana LIKE ?",
     [`%${kana}%`]
@@ -143,7 +115,7 @@ export const getUsersByKana = async (kana: string): Promise<SearchedUser[]> => {
 export const getUsersByMail = async (mail: string): Promise<SearchedUser[]> => {
   let users: SearchedUser[] = [];
   const [rows] = await pool.query<RowDataPacket[]>(
-    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     WHERE user.mail LIKE ?",
     [`%${mail}%`]
@@ -156,28 +128,9 @@ export const getUsersByMail = async (mail: string): Promise<SearchedUser[]> => {
 export const getUsersByDepartmentName = async (
   departmentName: string
 ): Promise<SearchedUser[]> => {
-  /*
-  const [departmentIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT department_id FROM department WHERE department_name LIKE ? AND active = true`,
-    [`%${departmentName}%`]
-  );
-  const departmentIds: string[] = departmentIdRows.map(
-    (row) => row.department_id
-  );
-  if (departmentIds.length === 0) {
-    return [];
-  }
-
-  const [userIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM department_role_member WHERE department_id IN (?) AND belong = true`,
-    [departmentIds]
-  );
-  const userIds: string[] = userIdRows.map((row) => row.user_id);
-
-  return getUsersByUserIds(userIds);*/
   let users: SearchedUser[] = [];
   const [rows] = await pool.query<RowDataPacket[]>(
-    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     INNER JOIN department_role_member ON user.user_id=department_role_member.user_id \
     INNER JOIN department ON department_role_member.department_id=department.department_id \

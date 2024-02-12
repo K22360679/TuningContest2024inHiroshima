@@ -44,7 +44,7 @@ export const getUserByUserId = async (
   const [users] = await pool.query<RowDataPacket[]>(
     "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
-    WHERE user_id = ?",
+    WHERE user_id = ? ORDER BY user_id ASC",
     [userId]
   );
   if (users.length === 0) {
@@ -92,6 +92,7 @@ export const getUserByUserId = async (
 //   }
 //   return users;
 // };
+
 export const getUsersByUserIds = async (
   userIds: string[]
 ): Promise<SearchedUser[]> => {
@@ -106,7 +107,7 @@ export const getUsersByUserIds = async (
   userIds.forEach((id) => {
     query += "user.user_id= " + id.toString() + " OR ";
   });
-  query += "0";
+  query += "0 ORDER BY user.user_id ASC";
   const [rows] = await pool.query<RowDataPacket[]>(query, []);
 
   users = users.concat(convertToSearchedUser(rows));
@@ -120,7 +121,7 @@ export const getUsersByUserName = async (
   const [rows] = await pool.query<RowDataPacket[]>(
     "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
-    WHERE user_name LIKE ?",
+    WHERE user_name LIKE ? ORDER BY user.user_id ASC",
     [`%${userName}%`]
   );
 
@@ -134,7 +135,7 @@ export const getUsersByKana = async (kana: string): Promise<SearchedUser[]> => {
   const [rows] = await pool.query<RowDataPacket[]>(
     "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
-    WHERE user.kana LIKE ?",
+    WHERE user.kana LIKE ? ORDER BY user.user_id ASC",
     [`%${kana}%`]
   );
 
@@ -148,7 +149,7 @@ export const getUsersByMail = async (mail: string): Promise<SearchedUser[]> => {
   const [rows] = await pool.query<RowDataPacket[]>(
     "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
-    WHERE user.mail LIKE ?",
+    WHERE user.mail LIKE ? ORDER BY user.user_id ASC",
     [`%${mail}%`]
   );
 
@@ -178,7 +179,7 @@ export const getUsersByDepartmentName = async (
   const [userIdRows] = await pool.query<RowDataPacket[]>(
     `SELECT drm.user_id FROM department_role_member AS drm\
      INNER JOIN drm.department_id=department.department_id \
-     WHERE department.department_id LIKE ? AND belong = true AND active = true`,
+     WHERE department.department_id LIKE ? AND belong = true AND active = true ORDER BY user.user_id ASC`,
     [`%${departmentName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
@@ -204,7 +205,8 @@ export const getUsersByRoleName = async (
   // );
   const [userIdRows] = await pool.query<RowDataPacket[]>(
     `SELECT drm.user_id FROM department_role_member AS drm, role \
-    WHERE drm.role_id=role.role_id AND role.role_id LIKE ? AND drm.belong = true AND role.active.true`,
+    WHERE drm.role_id=role.role_id AND role.role_id LIKE ? AND drm.belong = true AND role.active.true \
+    ORDER BY user.user_id ASC`,
     [`%${roleName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
@@ -229,7 +231,8 @@ export const getUsersByOfficeName = async (
   //   [officeIds]
   // );
   const [userIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT user.user_id FROM user, office WHERE user.office_id=office.office_id AND office.office_name LIKE ?`,
+    `SELECT user.user_id FROM user, office WHERE user.office_id=office.office_id AND office.office_name LIKE ?\
+    ORDER BY user.user_id ASC`,
     [`%${officeName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
@@ -255,7 +258,8 @@ export const getUsersBySkillName = async (
   // );
   const [userIdRows] = await pool.query<RowDataPacket[]>(
     `SELECT skm.user_id FROM skill, skill_member AS skm \
-    WHERE skm.skill_id=skill.skill_id AND skill.skill_name LIKE ?`,
+    WHERE skm.skill_id=skill.skill_id AND skill.skill_name LIKE ?\
+    ORDER BY user.user_id ASC`,
     [`%${skillName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
@@ -268,7 +272,7 @@ export const getUsersByGoal = async (goal: string): Promise<SearchedUser[]> => {
   const [rows] = await pool.query<RowDataPacket[]>(
     "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
   FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
-  WHERE user.goal LIKE ? ",
+  WHERE user.goal LIKE ? ORDER BY user.user_id ASC",
     [`%${goal}%`]
   );
 

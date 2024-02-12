@@ -22,6 +22,7 @@ export const getUserIdByMailAndPassword = async (
   return user[0].user_id;
 };
 
+// User全員をUser[]型で返す
 export const getUsers = async (
   limit: number,
   offset: number
@@ -34,46 +35,31 @@ export const getUsers = async (
   */
   // const query = `SELECT user_id, user_name, office_id, user_icon_id FROM user ORDER BY entry_date ASC, kana ASC LIMIT ? OFFSET ?`;
   const query =
-    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     ORDER BY entry_date ASC, kana ASC LIMIT ? OFFSET ? \
     ";
 
   const [userRows] = await pool.query<RowDataPacket[]>(query, [limit, offset]);
 
-  /*
-  for文がボトルネック!!!
-  for (const userRow of userRows) {
-    const [officeRows] = await pool.query<RowDataPacket[]>(
-      `SELECT office_name FROM office WHERE office_id = ?`,
-      [userRow.office_id]
-    );
-
-    const [fileRows] = await pool.query<RowDataPacket[]>(
-      `SELECT file_name FROM file WHERE file_id = ?`,
-      [userRow.user_icon_id]
-    );
-
-    userRow.office_name = officeRows[0].office_name;
-    userRow.file_name = fileRows[0].file_name;
-    rows.push(userRow);
-  }
-  */
-
   return convertToUsers(userRows);
 };
 
+// IDで検索する．一人だけ！！
 export const getUserByUserId = async (
   userId: string
 ): Promise<User | undefined> => {
-  const [user] = await pool.query<RowDataPacket[]>(
-    "SELECT user_id, user_name, office_id, user_icon_id FROM user WHERE user_id = ?",
+  const [users] = await pool.query<RowDataPacket[]>(
+    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    WHERE user_id = ?",
     [userId]
   );
-  if (user.length === 0) {
+  if (users.length === 0) {
     return;
   }
 
+  /*
   const [office] = await pool.query<RowDataPacket[]>(
     `SELECT office_name FROM office WHERE office_id = ?`,
     [user[0].office_id]
@@ -82,82 +68,95 @@ export const getUserByUserId = async (
     `SELECT file_name FROM file WHERE file_id = ?`,
     [user[0].user_icon_id]
   );
+  */
+
+  const user = users[0];
 
   return {
-    userId: user[0].user_id,
-    userName: user[0].user_name,
+    userId: user.user_id,
+    userName: user.user_name,
     userIcon: {
-      fileId: user[0].user_icon_id,
-      fileName: file[0].file_name,
+      fileId: user.user_icon_id,
+      fileName: user.file_name,
     },
-    officeName: office[0].office_name,
+    officeName: user.office_name,
   };
 };
 
+// 複数のIDでユーザーを検索する．
 export const getUsersByUserIds = async (
   userIds: string[]
 ): Promise<SearchedUser[]> => {
   let users: SearchedUser[] = [];
-  for (const userId of userIds) {
-    const [userRows] = await pool.query<RowDataPacket[]>(
-      "SELECT user_id, user_name, kana, entry_date, office_id, user_icon_id FROM user WHERE user_id = ?",
-      [userId]
-    );
-    if (userRows.length === 0) {
-      continue;
-    }
+  let query: string =
+    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    WHERE ";
+  userIds.forEach((id) => {
+    query += "user.user_id= " + id.toString() + " OR ";
+  });
+  query += "0";
+  const [rows] = await pool.query<RowDataPacket[]>(query, []);
 
-    const [officeRows] = await pool.query<RowDataPacket[]>(
-      `SELECT office_name FROM office WHERE office_id = ?`,
-      [userRows[0].office_id]
-    );
-    const [fileRows] = await pool.query<RowDataPacket[]>(
-      `SELECT file_name FROM file WHERE file_id = ?`,
-      [userRows[0].user_icon_id]
-    );
-    userRows[0].office_name = officeRows[0].office_name;
-    userRows[0].file_name = fileRows[0].file_name;
-
-    users = users.concat(convertToSearchedUser(userRows));
-  }
+  users = users.concat(convertToSearchedUser(rows));
   return users;
 };
 
 export const getUsersByUserName = async (
   userName: string
 ): Promise<SearchedUser[]> => {
+  /*
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT user_id FROM user WHERE user_name LIKE ?`,
     [`%${userName}%`]
   );
   const userIds: string[] = rows.map((row) => row.user_id);
+  
 
   return getUsersByUserIds(userIds);
+  */
+  let users: SearchedUser[] = [];
+  const [rows] = await pool.query<RowDataPacket[]>(
+    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    WHERE user_name LIKE ?",
+    [`%${userName}%`]
+  );
+
+  users = users.concat(convertToSearchedUser(rows));
+  return users;
 };
 
 export const getUsersByKana = async (kana: string): Promise<SearchedUser[]> => {
+  let users: SearchedUser[] = [];
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM user WHERE kana LIKE ?`,
+    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    WHERE user.kana LIKE ?",
     [`%${kana}%`]
   );
-  const userIds: string[] = rows.map((row) => row.user_id);
 
-  return getUsersByUserIds(userIds);
+  users = users.concat(convertToSearchedUser(rows));
+  return users;
 };
 
 export const getUsersByMail = async (mail: string): Promise<SearchedUser[]> => {
+  let users: SearchedUser[] = [];
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM user WHERE mail LIKE ?`,
+    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    WHERE user.mail LIKE ?",
     [`%${mail}%`]
   );
-  const userIds: string[] = rows.map((row) => row.user_id);
 
-  return getUsersByUserIds(userIds);
+  users = users.concat(convertToSearchedUser(rows));
+  return users;
 };
 
 export const getUsersByDepartmentName = async (
   departmentName: string
 ): Promise<SearchedUser[]> => {
+  /*
   const [departmentIdRows] = await pool.query<RowDataPacket[]>(
     `SELECT department_id FROM department WHERE department_name LIKE ? AND active = true`,
     [`%${departmentName}%`]
@@ -175,7 +174,19 @@ export const getUsersByDepartmentName = async (
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
 
-  return getUsersByUserIds(userIds);
+  return getUsersByUserIds(userIds);*/
+  let users: SearchedUser[] = [];
+  const [rows] = await pool.query<RowDataPacket[]>(
+    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    INNER JOIN department_role_member ON user.user_id=department_role_member.user_id \
+    INNER JOIN department ON department_role_member.department_id=department.department_id \
+    WHERE department.department_name LIKE ?",
+    [`%${departmentName}%`]
+  );
+
+  users = users.concat(convertToSearchedUser(rows));
+  return users;
 };
 
 export const getUsersByRoleName = async (

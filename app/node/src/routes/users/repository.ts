@@ -134,7 +134,7 @@ export const getUsersByDepartmentName = async (
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     INNER JOIN department_role_member ON user.user_id=department_role_member.user_id \
     INNER JOIN department ON department_role_member.department_id=department.department_id \
-    WHERE department.department_name LIKE ?",
+    WHERE department.department_name LIKE ? AND department_role_member.belong=true",
     [`%${departmentName}%`]
   );
 
@@ -145,75 +145,122 @@ export const getUsersByDepartmentName = async (
 export const getUsersByRoleName = async (
   roleName: string
 ): Promise<SearchedUser[]> => {
-  const [roleIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT role_id FROM role WHERE role_name LIKE ? AND active = true`,
+  // const [roleIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT role_id FROM role WHERE role_name LIKE ? AND active = true`,
+  //   [`%${roleName}%`]
+  // );
+  // const roleIds: string[] = roleIdRows.map((row) => row.role_id);
+  // if (roleIds.length === 0) {
+  //   return [];
+  // }
+
+  // const [userIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT user_id FROM department_role_member WHERE role_id IN (?) AND belong = true`,
+  //   [roleIds]
+  // );
+  // const userIds: string[] = userIdRows.map((row) => row.user_id);
+  let users: SearchedUser[] = [];
+  const [rows] = await pool.query<RowDataPacket[]>(
+    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    INNER JOIN department_role_member ON user.user_id=department_role_member.user_id \
+    INNER JOIN role ON department_role_member.role_id=role.role_id \
+    WHERE department.department_name LIKE ? \
+    AND role.active=true \
+    AND department_role_member.belong=true",
     [`%${roleName}%`]
   );
-  const roleIds: string[] = roleIdRows.map((row) => row.role_id);
-  if (roleIds.length === 0) {
-    return [];
-  }
 
-  const [userIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM department_role_member WHERE role_id IN (?) AND belong = true`,
-    [roleIds]
-  );
-  const userIds: string[] = userIdRows.map((row) => row.user_id);
-
-  return getUsersByUserIds(userIds);
+  users = users.concat(convertToSearchedUser(rows));
+  return users;
+  // return getUsersByUserIds(userIds);
 };
 
 export const getUsersByOfficeName = async (
   officeName: string
 ): Promise<SearchedUser[]> => {
-  const [officeIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT office_id FROM office WHERE office_name LIKE ?`,
+  // const [officeIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT office_id FROM office WHERE office_name LIKE ?`,
+  //   [`%${officeName}%`]
+  // );
+  // const officeIds: string[] = officeIdRows.map((row) => row.office_id);
+  // if (officeIds.length === 0) {
+  //   return [];
+  // }
+
+  // const [userIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT user_id FROM user WHERE office_id IN (?)`,
+  //   [officeIds]
+  // );
+  // const userIds: string[] = userIdRows.map((row) => row.user_id);
+
+  // return getUsersByUserIds(userIds);
+  let users: SearchedUser[] = [];
+  const [rows] = await pool.query<RowDataPacket[]>(
+    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    INNER JOIN office ON user.office_id=office.office_id \
+    WHERE office.office_Name LIKE ?",
     [`%${officeName}%`]
   );
-  const officeIds: string[] = officeIdRows.map((row) => row.office_id);
-  if (officeIds.length === 0) {
-    return [];
-  }
 
-  const [userIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM user WHERE office_id IN (?)`,
-    [officeIds]
-  );
-  const userIds: string[] = userIdRows.map((row) => row.user_id);
-
-  return getUsersByUserIds(userIds);
+  users = users.concat(convertToSearchedUser(rows));
+  return users;
 };
 
 export const getUsersBySkillName = async (
   skillName: string
 ): Promise<SearchedUser[]> => {
-  const [skillIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT skill_id FROM skill WHERE skill_name LIKE ?`,
+  // const [skillIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT skill_id FROM skill WHERE skill_name LIKE ?`,
+  //   [`%${skillName}%`]
+  // );
+  // const skillIds: string[] = skillIdRows.map((row) => row.skill_id);
+  // if (skillIds.length === 0) {
+  //   return [];
+  // }
+
+  // const [userIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT user_id FROM skill_member WHERE skill_id IN (?)`,
+  //   [skillIds]
+  // );
+  // const userIds: string[] = userIdRows.map((row) => row.user_id);
+
+  // return getUsersByUserIds(userIds);
+  let users: SearchedUser[] = [];
+  const [rows] = await pool.query<RowDataPacket[]>(
+    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    INNER JOIN skill_member ON user.user_id=skill_member.user_id \
+    INNER JOIN skill ON skill_member.skill_id=skill.skill_id \
+    WHERE skill.skill_name LIKE ? ",
     [`%${skillName}%`]
   );
-  const skillIds: string[] = skillIdRows.map((row) => row.skill_id);
-  if (skillIds.length === 0) {
-    return [];
-  }
 
-  const [userIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM skill_member WHERE skill_id IN (?)`,
-    [skillIds]
-  );
-  const userIds: string[] = userIdRows.map((row) => row.user_id);
-
-  return getUsersByUserIds(userIds);
+  users = users.concat(convertToSearchedUser(rows));
+  return users;
 };
 
 export const getUsersByGoal = async (goal: string): Promise<SearchedUser[]> => {
-  const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM user WHERE goal LIKE ?`,
-    [`%${goal}%`]
-  );
-  const userIds: string[] = rows.map((row) => row.user_id);
+//   const [rows] = await pool.query<RowDataPacket[]>(
+//     `SELECT user_id FROM user WHERE goal LIKE ?`,
+//     [`%${goal}%`]
+//   );
+//   const userIds: string[] = rows.map((row) => row.user_id);
 
-  return getUsersByUserIds(userIds);
-};
+//   return getUsersByUserIds(userIds);
+// };
+let users: SearchedUser[] = [];
+const [rows] = await pool.query<RowDataPacket[]>(
+  "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+  FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+  WHERE user.goal LIKE ? ",
+  [`%${goal}%`]
+);
+
+users = users.concat(convertToSearchedUser(rows));
+return users;
+};  
 
 export const getUserForFilter = async (
   userId?: string

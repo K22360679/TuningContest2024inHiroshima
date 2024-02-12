@@ -83,7 +83,7 @@ export const getUsersByUserIds = async (
   users = users.concat(convertToSearchedUser(rows));
   return users;
 };
-
+// user.nameと部分一致するものを出す．
 export const getUsersByUserName = async (
   userName: string
 ): Promise<SearchedUser[]> => {
@@ -99,6 +99,7 @@ export const getUsersByUserName = async (
   return users;
 };
 
+// user.kanaの中に含むものを出す．user.kanaは重複する可能性あり
 export const getUsersByKana = async (kana: string): Promise<SearchedUser[]> => {
   let users: SearchedUser[] = [];
   const [rows] = await pool.query<RowDataPacket[]>(
@@ -112,6 +113,7 @@ export const getUsersByKana = async (kana: string): Promise<SearchedUser[]> => {
   return users;
 };
 
+// 特定の文字列をuser.mailの中に含むものを出す．
 export const getUsersByMail = async (mail: string): Promise<SearchedUser[]> => {
   let users: SearchedUser[] = [];
   const [rows] = await pool.query<RowDataPacket[]>(
@@ -125,6 +127,7 @@ export const getUsersByMail = async (mail: string): Promise<SearchedUser[]> => {
   return users;
 };
 
+// 特定の文字列をdepartment.department ON department.department_id=user.department_id(部署名)に含むものを検索
 export const getUsersByDepartmentName = async (
   departmentName: string
 ): Promise<SearchedUser[]> => {
@@ -134,7 +137,7 @@ export const getUsersByDepartmentName = async (
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     INNER JOIN department_role_member ON user.user_id=department_role_member.user_id \
     INNER JOIN department ON department_role_member.department_id=department.department_id \
-    WHERE department.department_name LIKE ?",
+    WHERE department.department_name LIKE ? AND department.active=true",
     [`%${departmentName}%`]
   );
 

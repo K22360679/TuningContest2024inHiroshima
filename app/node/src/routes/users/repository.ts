@@ -30,7 +30,7 @@ export const getUsers = async (
   const query =
     "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
-    ORDER BY entry_date ASC, kana ASC LIMIT ? OFFSET ? \
+    ORDER BY entry_date ASC, kana ASC, user_id ASC, LIMIT ? OFFSET ? \
     ";
 
   const [userRows] = await pool.query<RowDataPacket[]>(query, [limit, offset]);
@@ -271,8 +271,8 @@ export const getUsersByGoal = async (goal: string): Promise<SearchedUser[]> => {
   let users: SearchedUser[] = [];
   const [rows] = await pool.query<RowDataPacket[]>(
     "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
-  FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
-  WHERE user.goal LIKE ? ORDER BY user.user_id ASC",
+    FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    WHERE user.goal LIKE ? ORDER BY user.user_id ASC",
     [`%${goal}%`]
   );
 

@@ -100,6 +100,9 @@ export const getUsersByUserIds = async (
 ): Promise<SearchedUser[]> => {
   let users: SearchedUser[] = [];
   let query: string =
+    // "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    // FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
+    // WHERE ";
     "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     WHERE ";

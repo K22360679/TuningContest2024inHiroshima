@@ -116,20 +116,26 @@ export const getUsersByMail = async (mail: string): Promise<SearchedUser[]> => {
 export const getUsersByDepartmentName = async (
   departmentName: string
 ): Promise<SearchedUser[]> => {
-  const [departmentIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT department_id FROM department WHERE department_name LIKE ? AND active = true`,
-    [`%${departmentName}%`]
-  );
-  const departmentIds: string[] = departmentIdRows.map(
-    (row) => row.department_id
-  );
-  if (departmentIds.length === 0) {
-    return [];
-  }
+  // const [departmentIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT department_id FROM department WHERE department_name LIKE ? AND active = true`,
+  //   [`%${departmentName}%`]
+  // );
+  // const departmentIds: string[] = departmentIdRows.map(
+  //   (row) => row.department_id
+  // );
+  // if (departmentIds.length === 0) {
+  //   return [];
+  // }
 
+  // const [userIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT user_id FROM department_role_member WHERE department_id IN (?) AND belong = true`,
+  //   [departmentIds]
+  // );
   const [userIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM department_role_member WHERE department_id IN (?) AND belong = true`,
-    [departmentIds]
+    `SELECT drm.user_id FROM department_role_member AS drm\
+     INNER JOIN drm.department_id=department.department_id \
+     WHERE department.department_id LIKE ? AND belong = true AND active = true`,
+    [`%${departmentName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
 
@@ -139,18 +145,23 @@ export const getUsersByDepartmentName = async (
 export const getUsersByRoleName = async (
   roleName: string
 ): Promise<SearchedUser[]> => {
-  const [roleIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT role_id FROM role WHERE role_name LIKE ? AND active = true`,
-    [`%${roleName}%`]
-  );
-  const roleIds: string[] = roleIdRows.map((row) => row.role_id);
-  if (roleIds.length === 0) {
-    return [];
-  }
+  // const [roleIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT role_id FROM role WHERE role_name LIKE ? AND active = true`,
+  //   [`%${roleName}%`]
+  // );
+  // const roleIds: string[] = roleIdRows.map((row) => row.role_id);
+  // if (roleIds.length === 0) {
+  //   return [];
+  // }
 
+  // const [userIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT user_id FROM department_role_member WHERE role_id IN (?) AND belong = true`,
+  //   [roleIds]
+  // );
   const [userIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM department_role_member WHERE role_id IN (?) AND belong = true`,
-    [roleIds]
+    `SELECT drm.user_id FROM department_role_member AS drm, role \
+    WHERE drm.role_id=role.role_id AND role.role_id LIKE ? AND drm.belong = true AND role.active.true`,
+    [`%${roleName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
 
@@ -160,18 +171,22 @@ export const getUsersByRoleName = async (
 export const getUsersByOfficeName = async (
   officeName: string
 ): Promise<SearchedUser[]> => {
-  const [officeIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT office_id FROM office WHERE office_name LIKE ?`,
-    [`%${officeName}%`]
-  );
-  const officeIds: string[] = officeIdRows.map((row) => row.office_id);
-  if (officeIds.length === 0) {
-    return [];
-  }
+  // const [officeIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT office_id FROM office WHERE office_name LIKE ?`,
+  //   [`%${officeName}%`]
+  // );
+  // const officeIds: string[] = officeIdRows.map((row) => row.office_id);
+  // if (officeIds.length === 0) {
+  //   return [];
+  // }
 
+  // const [userIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT user_id FROM user WHERE office_id IN (?)`,
+  //   [officeIds]
+  // );
   const [userIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM user WHERE office_id IN (?)`,
-    [officeIds]
+    `SELECT user.user_id FROM user, office WHERE user.office_id=office.office_id AND office.office_name LIKE ?`,
+    [`%${officeName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
 
@@ -181,18 +196,23 @@ export const getUsersByOfficeName = async (
 export const getUsersBySkillName = async (
   skillName: string
 ): Promise<SearchedUser[]> => {
-  const [skillIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT skill_id FROM skill WHERE skill_name LIKE ?`,
-    [`%${skillName}%`]
-  );
-  const skillIds: string[] = skillIdRows.map((row) => row.skill_id);
-  if (skillIds.length === 0) {
-    return [];
-  }
+  // const [skillIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT skill_id FROM skill WHERE skill_name LIKE ?`,
+  //   [`%${skillName}%`]
+  // );
+  // const skillIds: string[] = skillIdRows.map((row) => row.skill_id);
+  // if (skillIds.length === 0) {
+  //   return [];
+  // }
 
+  // const [userIdRows] = await pool.query<RowDataPacket[]>(
+  //   `SELECT user_id FROM skill_member WHERE skill_id IN (?)`,
+  //   [skillIds]
+  // );
   const [userIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT user_id FROM skill_member WHERE skill_id IN (?)`,
-    [skillIds]
+    `SELECT skm.user_id FROM skill, skill_member AS skm \
+    WHERE skm.skill_id=skill.skill_id AND skill.skill_name LIKE ?`,
+    [`%${skillName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
 

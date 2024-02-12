@@ -34,7 +34,7 @@ export const getUsers = async (
   */
   // const query = `SELECT user_id, user_name, office_id, user_icon_id FROM user ORDER BY entry_date ASC, kana ASC LIMIT ? OFFSET ?`;
   const query =
-    "SELECT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
+    "SELECT DISTINCT user.user_id, user.user_name, user.office_id, user.user_icon_id, office.office_name, file.file_name \
     FROM user INNER JOIN office ON user.office_id=office.office_id INNER JOIN file ON user.user_icon_id=file.file_id \
     ORDER BY entry_date ASC, kana ASC LIMIT ? OFFSET ? \
     ";

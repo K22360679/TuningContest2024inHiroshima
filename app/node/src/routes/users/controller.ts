@@ -30,12 +30,16 @@ usersRouter.get(
       }
       const path = userIcon.path;
       // 500px x 500pxでリサイズ
-      const data = execSync(`convert ${path} -resize 500x500! PNG:-`, {
-        shell: "/bin/bash",
-      });
+      const sharp = require("sharp");
+      sharp(path)
+        .resize(500, 500)
+        .toFile(path);
+      // const data = execSync(`convert ${path} -resize 500x500! PNG:-`, {
+      //   shell: "/bin/bash",
+      // });
       res.status(200).json({
         fileName: userIcon.fileName,
-        data: data.toString("base64"),
+        // data: data.toString("base64"),
       });
       console.log("successfully get user icon");
     } catch (e) {

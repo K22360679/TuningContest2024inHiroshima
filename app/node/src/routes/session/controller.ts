@@ -37,7 +37,7 @@ sessionRouter.post(
 
     const hash = createHash('sha256');
     hash.update(password);
-    const hashPassword = hash.digest('hex');
+    const hashPassword = await hash.digest('hex');
     // const hashPassword = execSync(
     //   `echo -n ${password} | shasum -a 256 | awk '{printf $1}'`,
     //   { shell: "/bin/bash" }

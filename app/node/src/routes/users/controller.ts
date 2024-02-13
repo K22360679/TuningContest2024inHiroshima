@@ -143,7 +143,10 @@ usersRouter.get(
         console.log("no user found");
         return;
       }
+      
 
+      // TODO!!!
+      // クエリによってソート・重複排除する！！！
       // 入社日・よみがなの昇順でソート
       duplicateUsers.sort((a, b) => {
         if (a.entryDate < b.entryDate) return -1;

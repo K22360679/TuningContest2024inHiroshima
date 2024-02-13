@@ -179,7 +179,7 @@ export const getUsersByDepartmentName = async (
   const [userIdRows] = await pool.query<RowDataPacket[]>(
     `SELECT drm.user_id FROM department_role_member AS drm\
      INNER JOIN department ON drm.department_id=department.department_id \
-     WHERE department.department_name LIKE ? AND department.belong = true AND drm.active = true ORDER BY user.user_id ASC`,
+     WHERE department.department_name LIKE ? AND department.belong = true AND drm.active = true ORDER BY drm.user_id ASC`,
     [`%${departmentName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
@@ -204,9 +204,9 @@ export const getUsersByRoleName = async (
   //   [roleIds]
   // );
   const [userIdRows] = await pool.query<RowDataPacket[]>(
-    `SELECT drm.user_id FROM department_role_member AS drm, role \
-    WHERE drm.role_id=role.role_id AND role.role_id LIKE ? AND drm.belong = true AND role.active.true \
-    ORDER BY user.user_id ASC`,
+    `SELECT drm.user_id FROM department_role_member AS drm INNER JOIN role ON drm.role_id=role.role_id\
+    WHERE role.role_name LIKE ? AND drm.belong = true AND role.active = true \
+    ORDER BY drm.user_id ASC`,
     [`%${roleName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);
@@ -259,7 +259,7 @@ export const getUsersBySkillName = async (
   const [userIdRows] = await pool.query<RowDataPacket[]>(
     `SELECT skm.user_id FROM skill, skill_member AS skm \
     WHERE skm.skill_id=skill.skill_id AND skill.skill_name LIKE ?\
-    ORDER BY user.user_id ASC`,
+    ORDER BY skm.user_id ASC`,
     [`%${skillName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);

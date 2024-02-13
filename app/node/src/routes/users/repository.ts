@@ -178,8 +178,8 @@ export const getUsersByDepartmentName = async (
   // );
   const [userIdRows] = await pool.query<RowDataPacket[]>(
     `SELECT drm.user_id FROM department_role_member AS drm\
-     INNER JOIN drm.department_id=department.department_id \
-     WHERE department.department_id LIKE ? AND belong = true AND active = true ORDER BY user.user_id ASC`,
+     INNER JOIN department ON drm.department_id=department.department_id \
+     WHERE department.department_name LIKE ? AND department.belong = true AND drm.active = true ORDER BY user.user_id ASC`,
     [`%${departmentName}%`]
   );
   const userIds: string[] = userIdRows.map((row) => row.user_id);

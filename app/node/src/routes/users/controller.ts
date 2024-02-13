@@ -3,7 +3,7 @@ import { execSync } from "child_process";
 import { getUsers } from "./repository";
 import { getUserByUserId } from "./repository";
 import { getFileByFileId } from "../files/repository";
-import { SearchedUser, Target, User } from "../../model/types";
+import { Target, User } from "../../model/types";
 import { getUsersByKeyword } from "./usecase";
 
 export const usersRouter = express.Router();
@@ -157,7 +157,7 @@ usersRouter.get(
       // });
 
       // // 重複ユーザーを削除
-      const users = [...new Set(getUsers)];
+      const users: User[] = [...new Set(getUsers)];
       // let uniqueUsers: User[] = [];
       // duplicateUsers.forEach((user) => {
       //   if (

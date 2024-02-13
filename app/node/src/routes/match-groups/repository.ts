@@ -76,14 +76,15 @@ export const getMatchGroupDetailByMatchGroupId = async (
     (row) => row.user_id
   );
 
-  const searchedUsers = await getUsersByUserIds(matchGroupMemberIds);
-  // SearchedUserからUser型に変換
-  const members: User[] = searchedUsers.map((searchedUser) => {
-    const { kana: _kana, entryDate: _entryDate, ...rest } = searchedUser;
-    return rest;
-  });
+  // const searchedUsers = await getUsersByUserIds(matchGroupMemberIds);
+  // // SearchedUserからUser型に変換
+  // const members: User[] = searchedUsers.map((searchedUser) => {
+  //   const { kana: _kana, entryDate: _entryDate, ...rest } = searchedUser;
+  //   return rest;
+  // });
+  // matchGroup[0].members = members;
+  const members = await getUsersByUserIds(matchGroupMemberIds);
   matchGroup[0].members = members;
-
   return convertToMatchGroupDetail(matchGroup[0]);
 };
 

@@ -32,11 +32,11 @@ export type Target =
   | "skill"
   | "goal";
 
-// ユーザー検索APIで最後にソートするためにプロパティを追加
-export interface SearchedUser extends User {
-  kana: string;
-  entryDate: Date | string;
-}
+// // ユーザー検索APIで最後にソートするためにプロパティを追加
+// export interface SearchedUser extends User {
+//   kana: string;
+//   entryDate: Date | string;
+// }
 
 // マッチグループ作成条件
 export interface MatchGroupConfig {

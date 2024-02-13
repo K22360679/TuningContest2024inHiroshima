@@ -1,8 +1,7 @@
 import { RowDataPacket } from "mysql2";
 import pool from "../../util/mysql";
-import { SearchedUser, User, UserForFilter } from "../../model/types";
+import { User, UserForFilter } from "../../model/types";
 import {
-  convertToSearchedUser,
   convertToUserForFilter,
   convertToUsers,
 } from "../../model/utils";

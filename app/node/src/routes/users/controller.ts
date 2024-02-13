@@ -157,14 +157,14 @@ usersRouter.get(
       });
 
       // 重複ユーザーを削除
-      let uniqueUsers: SearchedUser[] = [];
-      duplicateUsers.forEach((user) => {
-        if (
-          !uniqueUsers.some((uniqueUser) => uniqueUser.userId === user.userId)
-        ) {
-          uniqueUsers = uniqueUsers.concat(user);
-        }
-      });
+      let uniqueUsers: SearchedUser[] = [...new Set(duplicateUsers)];
+      // duplicateUsers.forEach((user) => {
+      //   if (
+      //     !uniqueUsers.some((uniqueUser) => uniqueUser.userId === user.userId)
+      //   ) {
+      //     uniqueUsers = uniqueUsers.concat(user);
+      //   }
+      // });
 
       // User型に変換
       const users: User[] = uniqueUsers

@@ -33,6 +33,9 @@ export const createMatchGroup = async (
   const startTime = Date.now();
   while (members.length < matchGroupConfig.numOfMembers) {
     // デフォルトは50秒でタイムアウト
+    // ここめっちゃ重い！！！！！！
+    // ランダムにとったあとフィルターするな！！！！！
+    // フィルターしたあとでランダム選択しろ！！！
     if (Date.now() - startTime > (!timeout ? 50000 : timeout)) {
       console.error("not all members found before timeout");
       return;

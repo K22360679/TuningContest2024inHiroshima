@@ -134,11 +134,11 @@ usersRouter.get(
       offset = 0;
     }
     try {
-      const duplicateUsers = await getUsersByKeyword(
+      const getUsers = await getUsersByKeyword(
         keyword,
         targets as Target[]
       );
-      if (duplicateUsers.length === 0) {
+      if (getUsers.length === 0) {
         res.json([]);
         console.log("no user found");
         return;
@@ -148,39 +148,40 @@ usersRouter.get(
       // TODO!!!
       // クエリによってソート・重複排除する！！！
       // 入社日・よみがなの昇順でソート
-      duplicateUsers.sort((a, b) => {
-        if (a.entryDate < b.entryDate) return -1;
-        if (a.entryDate > b.entryDate) return 1;
-        if (a.kana < b.kana) return -1;
-        if (a.kana > b.kana) return 1;
-        return 0;
-      });
+      // duplicateUsers.sort((a, b) => {
+      //   if (a.entryDate < b.entryDate) return -1;
+      //   if (a.entryDate > b.entryDate) return 1;
+      //   if (a.kana < b.kana) return -1;
+      //   if (a.kana > b.kana) return 1;
+      //   return 0;
+      // });
 
-      // 重複ユーザーを削除
-      let uniqueUsers: SearchedUser[] = [];
-      duplicateUsers.forEach((user) => {
-        if (
-          !uniqueUsers.some((uniqueUser) => uniqueUser.userId === user.userId)
-        ) {
-          uniqueUsers = uniqueUsers.concat(user);
-        }
-      });
+      // // 重複ユーザーを削除
+      const users = [...new Set(getUsers)];
+      // let uniqueUsers: User[] = [];
+      // duplicateUsers.forEach((user) => {
+      //   if (
+      //     !uniqueUsers.some((uniqueUser) => uniqueUser.userId === user.userId)
+      //   ) {
+      //     uniqueUsers = uniqueUsers.concat(user);
+      //   }
+      // });
 
-      // User型に変換
-      const users: User[] = uniqueUsers
-        .slice(offset, offset + limit)
-        .map((user) => {
-          return {
-            userId: user.userId,
-            userName: user.userName,
-            userIcon: {
-              fileId: user.userIcon.fileId,
-              fileName: user.userIcon.fileName,
-            },
-            officeName: user.officeName,
-          };
-        });
-      res.json(users);
+      // // User型に変換
+      // const users: User[] = uniqueUsers
+      //   .slice(offset, offset + limit)
+      //   .map((user) => {
+      //     return {
+      //       userId: user.userId,
+      //       userName: user.userName,
+      //       userIcon: {
+      //         fileId: user.userIcon.fileId,
+      //         fileName: user.userIcon.fileName,
+      //       },
+      //       officeName: user.officeName,
+      //     };
+      //   });
+      // res.json(users);
       console.log(`successfully searched ${users.length} users`);
     } catch (e) {
       next(e);

@@ -1,4 +1,4 @@
-import { Target, SearchedUser } from "../../model/types";
+import { Target, User } from "../../model/types";
 import {
   getUsersByUserName,
   getUsersByKana,
@@ -13,8 +13,8 @@ import {
 export const getUsersByKeyword = async (
   keyword: string,
   targets: Target[]
-): Promise<SearchedUser[]> => {
-  let users: SearchedUser[] = [];
+): Promise<User[]> => {
+  let users: User[] = [];
   for (const target of targets) {
     const oldLen = users.length;
     switch (target) {
